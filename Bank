@@ -1,0 +1,122 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+class Account {
+public:
+    string accountNumber;
+    string accountHolder;
+    double balance;
+
+    Account() : balance(0.0) {}
+
+    void deposit(double amount) {
+        balance += amount;
+        cout << "Deposited successfully. New balance: " << balance << endl;
+    }
+
+    void withdraw(double amount) {
+        if (balance >= amount) {
+            balance -= amount;
+            cout << "Withdrawal successful. New balance: " << balance << endl;
+        } else {
+            cout << "Insufficient balance." << endl;
+        }
+    }
+
+    void display() {
+        cout << "Account Number: " << accountNumber << endl;
+        cout << "Account Holder: " << accountHolder << endl;
+        cout << "Balance: " << balance << endl;
+    }
+};
+
+void createAccount() {
+    Account acc;
+    cout << "Enter account number: ";
+    cin >> acc.accountNumber;
+    cout << "Enter account holder's name: ";
+    cin.ignore(); // Ignore the newline left in input buffer
+    getline(cin, acc.accountHolder);
+
+    ofstream file(acc.accountNumber + ".dat", ios::binary);
+    if (file.is_open()) {
+        file.write((char*)&acc, sizeof(Account));
+        file.close();
+        cout << "Account created successfully." << endl;
+    } else {
+        cout << "Failed to create account." << endl;
+    }
+}
+
+void accessAccount() {
+    string accNumber;
+    cout << "Enter your account number: ";
+    cin >> accNumber;
+
+    Account acc;
+    ifstream file(accNumber + ".dat", ios::binary);
+    if (file.is_open()) {
+        file.read((char*)&acc, sizeof(Account));
+        file.close();
+
+        int choice;
+        do {
+            cout << "\n1. Deposit\n2. Withdraw\n3. Check Balance\n4. Exit\n";
+            cin >> choice;
+            switch (choice) {
+            case 1:
+                double depositAmount;
+                cout << "Enter amount to deposit: ";
+                cin >> depositAmount;
+                acc.deposit(depositAmount);
+                break;
+            case 2:
+                double withdrawAmount;
+                cout << "Enter amount to withdraw: ";
+                cin >> withdrawAmount;
+                acc.withdraw(withdrawAmount);
+                break;
+            case 3:
+                acc.display();
+                break;
+            case 4:
+                ofstream outFile(accNumber + ".dat", ios::binary);
+                if (outFile.is_open()) {
+                    outFile.write((char*)&acc, sizeof(Account));
+                    outFile.close();
+                }
+                cout << "Exiting..." << endl;
+                break;
+            default:
+                cout << "Invalid choice. Please choose again." << endl;
+            }
+        } while (choice != 4);
+    } else {
+        cout << "Account not found." << endl;
+    }
+}
+
+int main() {
+    int choice;
+    do {
+        cout << "\n1. Create Account\n2. Access Account\n3. Exit\n";
+        cin >> choice;
+        switch (choice) {
+        case 1:
+            createAccount();
+            break;
+        case 2:
+            accessAccount();
+            break;
+        case 3:
+            cout << "Exiting program." << endl;
+            break;
+        default:
+            cout << "Invalid choice. Please choose again." << endl;
+        }
+    } while (choice != 3);
+
+    return 0;
+}
